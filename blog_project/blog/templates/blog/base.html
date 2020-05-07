@@ -2,6 +2,7 @@
 <!DOCTYPE html>
 <html>
 <head>
+    {% block extrahead %}{% endblock extrahead %}
     <!-- Required meta tags -->
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
@@ -60,15 +61,28 @@
             {% block content %}{% endblock %}
         </div>
         <div class="col-md-4">
-          <div class="content-section">
-            <h3>Our Sidebar</h3>
-            <p class='text-muted'>You can put any information here you'd like.
-              <ul class="list-group">
-                <li class="list-group-item list-group-item-light">Latest Posts</li>
-                <li class="list-group-item list-group-item-light">Announcements</li>
-                <li class="list-group-item list-group-item-light">Calendars</li>
-                <li class="list-group-item list-group-item-light">etc</li>
-              </ul>
+            <div class="content-section">
+                <h3>Sidebar</h3>
+                <p class='text-muted'> Why do raccoons get fat?
+                <ul class="list-group">
+                    <li class="list-group-item list-group-item-light"><a href="{% url 'blog-home' %}">Latest Posts</a>
+                    </li>
+                    {% if friends_count == 0 %}
+                    <li class="list-group-item list-group-item-light"><a href="{% url 'friends' %}">Friends</a></li>
+                    {% else %}
+                    <li class="list-group-item list-group-item-light"><a href="{% url 'friends' %}">Friends ({{
+                        friends_count }})</a></li>
+                    {% endif %}
+
+                    {% if friend_request_count == 0 %}
+                    <li class="list-group-item list-group-item-light"><a href="{% url 'friend-request' %}">Friend
+                        requests</a></li>
+                    {% else %}
+                    <li class="list-group-item list-group-item-light"><a href="{% url 'friend-request' %}">Friend
+                        requests ({{ friend_request_count }})</a></li>
+                    {% endif %}
+                    <li class="list-group-item list-group-item-light"><a href="{% url 'add-friend' %}">Add a Friend</li>
+                </ul>
             </p>
           </div>
         </div>

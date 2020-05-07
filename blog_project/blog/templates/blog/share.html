@@ -1,0 +1,34 @@
+{% extends 'blog/base.html'%}
+{% block extrahead %}
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+{% endblock extrahead %}
+{% block content %}
+{% if user.is_authenticated  %}
+{% for friend in friends_shared %}
+<form action="{% url 'post-shared' %}" method="post">
+    {% csrf_token %}
+    <input name="post_id" type="hidden" value="{{ post_id }}"/>
+    <input name="current_user" type="hidden" value="{{ friend.0.current_user }}"/>
+    <input name="current_user_friend" type="hidden" value="{{ friend.0.current_user_friend }}"/>
+    <input name="current_page" type="hidden" value="{{ request.get_full_path }}"/>
+    <article class="media content-section">
+        <img class="rounded-circle article-img" src="{{ friend.0.current_user_friend.profile.image.url }}">
+        <div class="media-body">
+            <h2><a class="article-title">{{ friend.0.current_user_friend.username }}</a>
+                {% if friend.1 %}
+                <button class="btn btn-secondary mt-1 pt-0 pb-0 material-icons " disabled="true" style="float:right">
+                    send
+                </button>
+                {% else %}
+                <button class="btn btn-outline-info mt-1 pt-0 pb-0 material-icons" style="float:right" type="submit">
+                    send
+                </button>
+                {% endif %}
+                <div class="article-metadata">
+                </div>
+        </div>
+</form>
+</article>
+{% endfor %}
+{%endif%}
+{% endblock content %}

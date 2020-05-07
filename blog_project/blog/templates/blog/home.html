@@ -1,31 +1,41 @@
 {% extends 'blog/base.html'%}
+{% block extrahead %}
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+{% endblock extrahead %}
 {% block content %}
-    {% for post in posts %}
+{% for post in posts %}
 
-        <article class="media content-section">
-          <img class="rounded-circle article-img" src="{{ post.author.profile.image.url }}">
-          <div class="media-body">
-            <div class="article-metadata">
-              <a class="mr-2" href="{% url 'user-posts' post.author.username %}">{{ post.author }}</a>
-              <small class="text-muted">{{ post.date_posted|date:"F d, Y f" }}</small>
-            </div>
+<article class="media content-section">
+    <img class="rounded-circle article-img" src="{{ post.author.profile.image.url }}">
+    <div class="media-body">
+        <div class="article-metadata">
+            <a class="mr-2" href="{% url 'user-posts' post.author.username %}">{{ post.author }}</a>
+            <small class="text-muted">{{ post.date_posted|date:"F d, Y f" }}</small>
+        </div>
             <h2><a class="article-title" href="{% url 'post-detail' post.id %}">{{ post.title }}</a></h2>
             <p class="article-content">{{ post.content }}</p>
-            <p>{{ post.like_count }}</p>
+
             <form action="/like/" method="post">
                 {% csrf_token %}
+
                 {% if user.is_authenticated  %}
                 <input type="hidden" value="{{ post.id }}" name="post_id"/>
                 <input type="hidden" value="{{  request.get_full_path }}" name="current_page"/>
-                 {% if user.id != post.author.id %}
-                    {% if post.liked == 0 %}
-                        <button class="btn btn-outline-info mb-1" type="submit">Like</button>
-                    {% else %}
-                         <button class="btn btn-outline-info mb-1" type="submit">Dislike</button>
-                    {% endif %}
-                 {% else %}
-                    <button class="btn btn-secondary mb-1 disabled" disabled="true">Like</button>
-                 {% endif %}
+                <a class="text-muted">Likes: {{ post.like_count }}</a>
+                {% if user.id != post.author.id %}
+                {% if post.liked == 0 %}
+                <button class="btn btn-outline-info mb-1 material-icons" style="float:right" type="submit">thumb_up
+                </button>
+                {% else %}
+                <button class="btn btn-outline-danger mb-1 material-icons" style="float:right" type="submit">
+                    thumb_down
+                </button>
+                {% endif %}
+                {% else %}
+                <button class="btn btn-secondary mb-1 material-icons disabled" style="float:right">thumb_up</button>
+                {% endif %}
+                {% else %}
+                <a>{{ post.like_count }}</a>
                 {% endif %}
             </form>
           </div>
