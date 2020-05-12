@@ -262,3 +262,47 @@ class FriendDeleteRedirectView(RedirectView):
             return current_page
         else:
             return super().get_redirect_url(*args, **kwargs)
+
+
+class SharedPostsListView(ListView):
+    model = Post
+    template_name = 'blog/shared_posts.html'  # <app>/<model>_<viewtype>.html
+    context_object_name = 'posts'
+    ordering = ['-date_posted']
+    paginate_by = 5  # this adds first pagination functionality
+
+    def get_context_data(self, *, object_list=None, **kwargs):
+        shared_posts = SharedPost.objects.filter(post_receiver_id=self.request.user.id).values('post')
+        post_bjects = Post.objects.filter(id__in=shared_posts).annotate(like_count=Count('likes'),
+                                                                        liked=Count('likes', filter=Q(
+                                                                            likes__user=self.request.user))
+                                                                        ).order_by('-date_posted')
+        shared_posts = SharedPost.objects.filter(post_receiver_id=self.request.user.id)
+        posts = []
+        for i in range(len(post_bjects)):
+            post = post_bjects[i]
+            shared_post = shared_posts[i]
+            posts.append((post, shared_post.post_sender.username))
+            # posts.append(post)
+
+        kwargs.update({
+            "posts": posts
+        })
+        return super().get_context_data(object_list=None, **kwargs)
+
+
+class PostShareDeleteRedirectView(RedirectView):
+
+    def get_redirect_url(self, *args, **kwargs):
+        if self.request.user.is_authenticated:
+            current_user = self.request.user
+            post_id = int(self.request.POST['post_id'])
+            current_page = self.request.POST['current_page']
+            sender = self.request.POST['sender_name']
+            sender = User.objects.get(username=sender)
+
+            post = Post.objects.get(id=post_id)
+            SharedPost.objects.get(post_sender_id=sender.id, post_receiver_id=current_user.id, post_id=post.id).delete()
+            return current_page
+        else:
+            return super().get_redirect_url(*args, **kwargs)

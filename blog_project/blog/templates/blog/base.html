@@ -13,9 +13,9 @@
     <link  rel="stylesheet" type="text/css" href="{% static 'blog/main.css'%}">
 
     {% if title %}
-        <title>Django Blog - {{ title }}</title>
+        <title>Social Panda - {{ title }}</title>
     {% else %}
-        <title>Django Blog</title>
+    <title>Social Panda</title>
     {% endif %}
 </head>
 <body>
@@ -70,8 +70,8 @@
                     {% if friends_count == 0 %}
                     <li class="list-group-item list-group-item-light"><a href="{% url 'friends' %}">Friends</a></li>
                     {% else %}
-                    <li class="list-group-item list-group-item-light"><a href="{% url 'friends' %}">Friends ({{
-                        friends_count }})</a></li>
+                <li class="list-group-item list-group-item-light"><a href="{% url 'friends' %}">Friends ({{
+                    friends_count }})</a></li>
                     {% endif %}
 
                     {% if friend_request_count == 0 %}
@@ -82,6 +82,8 @@
                         requests ({{ friend_request_count }})</a></li>
                     {% endif %}
                     <li class="list-group-item list-group-item-light"><a href="{% url 'add-friend' %}">Add a Friend</li>
+                <li class="list-group-item list-group-item-light"><a href="{% url 'shared-posts' %}">Recommendations
+                </li>
                 </ul>
             </p>
           </div>

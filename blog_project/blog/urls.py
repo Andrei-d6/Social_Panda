@@ -16,7 +16,7 @@ from .views import (
     ProcessRequestRedirectView,
     PostShareListView,
     PostShareRedirectView,
-    FriendDeleteRedirectView
+    FriendDeleteRedirectView, SharedPostsListView, PostShareDeleteRedirectView
 )
 
 urlpatterns = [
@@ -35,5 +35,8 @@ urlpatterns = [
     path('process-request/', ProcessRequestRedirectView.as_view(), name='process-request'),
     path('post/<int:pk>/share/', PostShareListView.as_view(), name='post-share'),
     path('post-shared/', PostShareRedirectView.as_view(), name='post-shared'),
-    path('deleted-friend/', FriendDeleteRedirectView.as_view(), name='deleted-friend')
+    path('deleted-friend/', FriendDeleteRedirectView.as_view(), name='deleted-friend'),
+    path('shared-posts/', SharedPostsListView.as_view(), name='shared-posts'),
+    path('delete-shared-post/', PostShareDeleteRedirectView.as_view(), name='delete-shared-post'),
+
 ]
