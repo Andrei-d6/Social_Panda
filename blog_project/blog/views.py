@@ -290,6 +290,14 @@ class SharedPostsListView(ListView):
         })
         return super().get_context_data(object_list=None, **kwargs)
 
+    def get_queryset(self):
+        shared_posts = SharedPost.objects.filter(post_receiver_id=self.request.user.id).values('post')
+        posts = Post.objects.filter(id__in=shared_posts).annotate(like_count=Count('likes'),
+                                                                  liked=Count('likes', filter=Q(
+                                                                      likes__user=self.request.user))
+                                                                  ).order_by('-date_posted')
+        return posts
+
 
 class PostShareDeleteRedirectView(RedirectView):
 
