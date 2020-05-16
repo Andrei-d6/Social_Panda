@@ -63,31 +63,42 @@
         <div class="col-md-4">
             <div class="content-section">
                 <h3>Sidebar</h3>
-                <p class='text-muted'> Why do raccoons get fat?
+                <p class='text-muted'> Why do raccoons get fat?</p>
                 <ul class="list-group">
-                    <li class="list-group-item list-group-item-light"><a href="{% url 'blog-home' %}">Latest Posts</a>
+                    <li class="list-group-item list-group-item-light"><a class="article-title"
+                                                                         href="{% url 'blog-home' %}">Latest Posts</a>
+                    </li>
+
+                    <li class="list-group-item list-group-item-light"><a class="article-title"
+                                                                         href="{% url 'search' %}">Search</a>
                     </li>
                     {% if friends_count == 0 %}
-                    <li class="list-group-item list-group-item-light"><a href="{% url 'friends' %}">Friends</a></li>
+                    <li class="list-group-item list-group-item-light"><a class="article-title"
+                                                                         href="{% url 'friends' %}">Friends</a></li>
                     {% else %}
                     <li class="list-group-item list-group-item-light">
-                        <a href="{% url 'friends' %}">Friends ({{ friends_count }})</a></li>
+                        <a class="article-title" href="{% url 'friends' %}">Friends ({{ friends_count }})</a></li>
                     {% endif %}
 
                     {% if friend_request_count == 0 %}
-                    <li class="list-group-item list-group-item-light"><a href="{% url 'friend-request' %}">Friend
+                    <li class="list-group-item list-group-item-light"><a class="article-title"
+                                                                         href="{% url 'friend-request' %}">Friend
                         requests</a></li>
                     {% else %}
-                    <li class="list-group-item list-group-item-light"><a href="{% url 'friend-request' %}">Friend
+                    <li class="list-group-item list-group-item-light"><a class="article-title"
+                                                                         href="{% url 'friend-request' %}">Friend
                         requests ({{ friend_request_count }})</a></li>
                     {% endif %}
-                    <li class="list-group-item list-group-item-light"><a href="{% url 'add-friend' %}">Add a Friend</li>
+                    <li class="list-group-item list-group-item-light"><a class="article-title"
+                                                                         href="{% url 'add-friend' %}">Add a Friend</li>
 
                     {% if shared_posts_count == 0 %}
-                    <li class="list-group-item list-group-item-light"><a href="{% url 'shared-posts' %}">Recommendations
+                    <li class="list-group-item list-group-item-light"><a class="article-title"
+                                                                         href="{% url 'shared-posts' %}">Recommendations
                     </li>
                     {% else %}
-                    <li class="list-group-item list-group-item-light"><a href="{% url 'shared-posts' %}">
+                    <li class="list-group-item list-group-item-light"><a class="article-title"
+                                                                         href="{% url 'shared-posts' %}">
                         Recommendations ({{ shared_posts_count }})</li>
                     {% endif %}
                 </ul>

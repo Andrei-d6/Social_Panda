@@ -1,8 +1,10 @@
+from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.contrib.auth.models import User
 from django.db.models import Count, Q
 from django.http import JsonResponse
 from django.shortcuts import render, get_object_or_404
+from django.urls import resolve, Resolver404
 from django.views.generic import (
     ListView,
     DetailView,
@@ -26,7 +28,7 @@ class PostListView(ListView):
     template_name = "blog/home.html"  # <app>/<model>_<viewtype>.html
     context_object_name = "posts"
     ordering = ["-date_posted"]
-    paginate_by = 5  # this adds first pagination functionality
+    paginate_by = 3  # this adds first pagination functionality
 
     def get_queryset(self):
         if self.request.user.is_authenticated:
@@ -35,7 +37,7 @@ class PostListView(ListView):
                     .annotate(
                     like_count=Count("likes"),
                     liked=Count("likes", filter=Q(likes__user=self.request.user)),
-                )
+                ).annotate(comments_count=Count("comment"))
                     .order_by("-date_posted")
             )
         else:
@@ -47,7 +49,7 @@ class UserPostListView(ListView):
     model = Post
     template_name = "blog/user_posts.html"  # <app>/<model>_<viewtype>.html
     context_object_name = "posts"
-    paginate_by = 5  # this adds first pagination functionality
+    paginate_by = 3  # this adds first pagination functionality
 
     def get_queryset(self):
         user = get_object_or_404(User, username=self.kwargs.get("username"))
@@ -63,7 +65,11 @@ class PostDetailView(DetailView):
         comments = Comment.objects.filter(post_id=self.object.id).order_by(
             "-date_of_comment"
         )
-        kwargs.update({"comments": comments})
+        likes_count = Like.objects.filter(post_id=self.object.id).count()
+        kwargs.update({"comments": comments,
+                       "likes_count": likes_count,
+                       "comments_count": len(comments)
+                       })
         return super().get_context_data(object_list=None, **kwargs)
 
 
@@ -138,17 +144,17 @@ class LikeRedirectView(RedirectView):
             return super().get_redirect_url(*args, **kwargs)
 
 
-class FriendListView(ListView):
+class FriendListView(LoginRequiredMixin, ListView):
     model = Friend
     template_name = "blog/friend_list.html"
+    context_object_name = "friends"
+    paginate_by = 3
 
-    def get_context_data(self, *, object_list=None, **kwargs):
-        friends = Friend.objects.filter(current_user_id=self.request.user.id)
-        kwargs.update({"friends": friends})
-        return super().get_context_data(object_list=None, **kwargs)
+    def get_queryset(self):
+        return Friend.objects.filter(current_user_id=self.request.user.id)
 
 
-class FriendRequestListView(ListView):
+class FriendRequestListView(LoginRequiredMixin, ListView):
     model = Friend
     template_name = "blog/friend_request.html"
 
@@ -158,7 +164,7 @@ class FriendRequestListView(ListView):
         return super().get_context_data(object_list=None, **kwargs)
 
 
-class AddFriendListView(ListView):
+class AddFriendListView(LoginRequiredMixin, ListView):
     model = Friend
     template_name = "blog/add_friend.html"
 
@@ -189,7 +195,7 @@ class AddFriendListView(ListView):
         return super().get_context_data(object_list=None, **kwargs)
 
 
-class AddFriendRedirectView(RedirectView):
+class AddFriendRedirectView(LoginRequiredMixin, RedirectView):
     def get_redirect_url(self, *args, **kwargs):
         if self.request.user.is_authenticated:
             current_user = self.request.user
@@ -226,7 +232,7 @@ class ProcessRequestRedirectView(RedirectView):
             return super().get_redirect_url(*args, **kwargs)
 
 
-class PostShareListView(ListView):
+class PostShareListView(LoginRequiredMixin, ListView):
     model = Friend
     template_name = "blog/share.html"
 
@@ -281,61 +287,51 @@ class FriendDeleteRedirectView(RedirectView):
             current_user_id = self.request.user.id
             current_page = self.request.GET["current_page"]
 
-            Friend.objects.get(
-                current_user_id=current_user_id,
-                current_user_friend_id=friend_to_delete_id,
-            ).delete()
-            Friend.objects.get(
-                current_user_id=friend_to_delete_id,
-                current_user_friend_id=current_user_id,
-            ).delete()
+            if Friend.objects.filter(current_user_id=current_user_id,
+                                     current_user_friend_id=friend_to_delete_id).exists():
+                Friend.objects.get(
+                    current_user_id=current_user_id,
+                    current_user_friend_id=friend_to_delete_id,
+                ).delete()
+
+            if Friend.objects.filter(current_user_id=friend_to_delete_id,
+                                     current_user_friend_id=current_user_id).exists():
+                Friend.objects.get(
+                    current_user_id=friend_to_delete_id,
+                    current_user_friend_id=current_user_id,
+                ).delete()
+
+            try:
+                resolve(current_page)
+            except Resolver404:
+                page_index = int(current_page[-1])
+                page_index -= 1
+
+                if page_index >= 1:
+                    current_page = current_page[:-1]
+                    current_page += str(page_index)
+                else:
+                    current_page = '/friends/'
+
             return current_page
         else:
             return super().get_redirect_url(*args, **kwargs)
 
 
-class SharedPostsListView(ListView):
+class SharedPostsListView(LoginRequiredMixin, ListView):
     model = Post
     template_name = "blog/shared_posts.html"  # <app>/<model>_<viewtype>.html
     context_object_name = "posts"
     ordering = ["-date_posted"]
-    paginate_by = 5  # this adds first pagination functionality
-
-    def get_context_data(self, *, object_list=None, **kwargs):
-        shared_posts = SharedPost.objects.filter(
-            post_receiver_id=self.request.user.id
-        ).values("post")
-        post_bjects = (
-            Post.objects.filter(id__in=shared_posts)
-                .annotate(
-                like_count=Count("likes"),
-                liked=Count("likes", filter=Q(likes__user=self.request.user)),
-            )
-                .order_by("-date_posted")
-        )
-        shared_posts = SharedPost.objects.filter(post_receiver_id=self.request.user.id)
-        posts = []
-        for i in range(len(post_bjects)):
-            post = post_bjects[i]
-            shared_post = shared_posts[i]
-            posts.append((post, shared_post.post_sender.username))
-            # posts.append(post)
-
-        kwargs.update({"posts": posts})
-        return super().get_context_data(object_list=None, **kwargs)
+    paginate_by = 3  # this adds first pagination functionality
 
     def get_queryset(self):
-        shared_posts = SharedPost.objects.filter(
-            post_receiver_id=self.request.user.id
-        ).values("post")
-        posts = (
-            Post.objects.filter(id__in=shared_posts)
-                .annotate(
-                like_count=Count("likes"),
-                liked=Count("likes", filter=Q(likes__user=self.request.user)),
-            )
-                .order_by("-date_posted")
-        )
+        shared_posts = SharedPost.objects.filter(post_receiver_id=self.request.user.id)
+        posts = []
+
+        for post in shared_posts:
+            posts.append((post.post, post.post_sender.username))
+
         return posts
 
 
@@ -348,12 +344,34 @@ class PostShareDeleteRedirectView(RedirectView):
             sender = self.request.POST["sender_name"]
             sender = User.objects.get(username=sender)
 
-            post = Post.objects.get(id=post_id)
-            SharedPost.objects.get(
-                post_sender_id=sender.id,
-                post_receiver_id=current_user.id,
-                post_id=post.id,
-            ).delete()
+            if Post.objects.filter(id=post_id).exists():
+                post = Post.objects.get(id=post_id)
+
+                if SharedPost.objects.filter(
+                        post_sender_id=sender.id,
+                        post_receiver_id=current_user.id,
+                        post_id=post.id,
+                ).exists():
+
+                    SharedPost.objects.get(
+                        post_sender_id=sender.id,
+                        post_receiver_id=current_user.id,
+                        post_id=post.id,
+                    ).delete()
+                else:
+                    print(f'sender: {sender.username}\nreceiver: {current_user.username}')
+
+            try:
+                resolve(current_page)
+            except Resolver404:
+                page_index = int(current_page[-1])
+                page_index -= 1
+
+                if page_index >= 1:
+                    current_page = current_page[:-1]
+                    current_page += str(page_index)
+                else:
+                    current_page = '/shared-posts/'
             return current_page
         else:
             return super().get_redirect_url(*args, **kwargs)
@@ -372,3 +390,57 @@ class AddCommentRedirectView(RedirectView):
             return current_page
         else:
             return super().get_redirect_url(*args, **kwargs)
+
+
+class SearchListView(LoginRequiredMixin, ListView):
+    model = Post
+    template_name = "blog/search.html"
+    context_object_name = "posts"
+    ordering = ["-date_posted"]
+
+    # paginate_by = 2
+
+    def get_queryset(self):
+        searched_word = self.request.GET.get("search_for", "")
+        self.kwargs.update({"search_for": searched_word})
+        if searched_word == '':
+            return Post.objects.none()
+
+        posts = Post.objects.filter(
+            Q(title__icontains=searched_word) |
+            Q(author__username__icontains=searched_word) |
+            Q(content__icontains=searched_word)
+        ).annotate(
+            like_count=Count("likes"),
+            liked=Count("likes", filter=Q(likes__user=self.request.user)),
+        ).annotate(comments_count=Count("comment"))
+
+        if not posts:
+            messages.warning(
+                self.request, f"Nothing to be found for your search!"
+            )
+            return Post.objects.none()
+
+        # self.kwargs.update({"search_for": searched_word})
+        return posts
+
+    # def get_context_data(self, *, object_list=None, **kwargs):
+    #     searched_word = self.request.GET.get("search_for", "")
+    #
+    #     if searched_word == '':
+    #         return super().get_context_data(object_list=None, **kwargs)
+    #
+    #     posts = Post.objects.filter(
+    #          Q(title__icontains=searched_word) |
+    #          Q(author__username__icontains=searched_word) |
+    #          Q(content__icontains=searched_word)
+    #     ).order_by('-date_posted')
+    #
+    #     if not posts:
+    #         messages.warning(
+    #             self.request, f"Nothing to be found for your search!"
+    #         )
+    #     kwargs.update({"posts": posts,
+    #
+    #                    })
+    #     return super().get_context_data(object_list=None, **kwargs)

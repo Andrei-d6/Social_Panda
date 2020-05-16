@@ -57,9 +57,12 @@ a.article-title:hover {
 }
 
 .post-img {
-  width: 90%;
   margin: auto;
   padding-bottom: 15px;
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+  width: 50%;
 }
 
 .article-metadata {
@@ -79,6 +82,9 @@ a.article-title:hover {
   vertical-align: middle;
 }
 
+.vertical-align {
+    vertical-align: middle;
+}
 .account-img {
   height: 125px;
   width: 125px;

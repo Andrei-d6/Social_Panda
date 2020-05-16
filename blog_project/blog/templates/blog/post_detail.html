@@ -14,19 +14,30 @@
             <div>
                 <a class="btn btn-secondary btn-sm mt-1 mb-1" href="{% url 'post-update' object.id %}">Update</a>
                 <a class="btn btn-danger btn-sm mt-1 mb-1" href="{% url 'post-delete' object.id %}">Delete</a>
-                <a class="btn btn-info mb-1 material-icons" href="{% url 'post-share' object.id %}"
+                <a class="btn btn-outline-info mb-1 material-icons" href="{% url 'post-share' object.id %}"
                    style="float:right">send</a>
             </div>
             {% endif %}
         </div>
+        {% if object.author != user %}
+        <a class="btn btn-outline-info material-icons" href="{% url 'post-share' object.id %}"
+           style="float:right">send</a>
+        {% endif %}
         <h2 class="article-title">{{ object.title }}</h2>
         <p class="article-content">{{ object.content }}</p>
+
+        {% if post.image %}
+        <img class="post-img" src="{{ post.image.url }}">
+        {% endif %}
+
+        <a class="text-muted">Likes: {{ likes_count }}</a>
+        <a class="text-muted pl-2">Comments: {{ comments_count }}</a>
     </div>
 </article>
 
+{% if user.is_authenticated %}
 <form action="{% url 'added-comment' %}" method="post">
     {% csrf_token %}
-    {% if user.is_authenticated %}
     <input name="user_id" type="hidden" value="{{ user.id }}"/>
     <input name="post_id" type="hidden" value="{{ object.id }}"/>
     <input name="current_page" type="hidden" value="{{ request.get_full_path }}"/>
@@ -38,13 +49,13 @@
             <button class="btn btn-outline-secondary" id="search_button_id" type="submit">Comment</button>
         </div>
     </div>
-    {% endif %}
+
     </h2>
 </form>
 
 <article class="media content-section">
-
     <div class="media-body">
+        {% if comments %}
         <h6 class="article-title">Comments:</h6>
         {% for comment in comments %}
         <article class="media content-section">
@@ -59,6 +70,10 @@
             </div>
         </article>
         {% endfor %}
+        {% else %}
+        <h6>No comments</h6>
+        {% endif %}
     </div>
 </article>
+{% endif %}
 {% endblock content %}
