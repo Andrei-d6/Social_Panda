@@ -70,8 +70,8 @@
                     {% if friends_count == 0 %}
                     <li class="list-group-item list-group-item-light"><a href="{% url 'friends' %}">Friends</a></li>
                     {% else %}
-                <li class="list-group-item list-group-item-light"><a href="{% url 'friends' %}">Friends ({{
-                    friends_count }})</a></li>
+                    <li class="list-group-item list-group-item-light">
+                        <a href="{% url 'friends' %}">Friends ({{ friends_count }})</a></li>
                     {% endif %}
 
                     {% if friend_request_count == 0 %}
@@ -82,8 +82,14 @@
                         requests ({{ friend_request_count }})</a></li>
                     {% endif %}
                     <li class="list-group-item list-group-item-light"><a href="{% url 'add-friend' %}">Add a Friend</li>
-                <li class="list-group-item list-group-item-light"><a href="{% url 'shared-posts' %}">Recommendations
-                </li>
+
+                    {% if shared_posts_count == 0 %}
+                    <li class="list-group-item list-group-item-light"><a href="{% url 'shared-posts' %}">Recommendations
+                    </li>
+                    {% else %}
+                    <li class="list-group-item list-group-item-light"><a href="{% url 'shared-posts' %}">
+                        Recommendations ({{ shared_posts_count }})</li>
+                    {% endif %}
                 </ul>
             </p>
           </div>

@@ -12,15 +12,53 @@
 
             {% if object.author == user %}
             <div>
-              <a class="btn btn-secondary btn-sm mt-1 mb-1" href="{% url 'post-update' object.id %}">Update</a>
-              <a class="btn btn-danger btn-sm mt-1 mb-1" href="{% url 'post-delete' object.id %}">Delete</a>
+                <a class="btn btn-secondary btn-sm mt-1 mb-1" href="{% url 'post-update' object.id %}">Update</a>
+                <a class="btn btn-danger btn-sm mt-1 mb-1" href="{% url 'post-delete' object.id %}">Delete</a>
+                <a class="btn btn-info mb-1 material-icons" href="{% url 'post-share' object.id %}"
+                   style="float:right">send</a>
             </div>
-          {% endif %}
+            {% endif %}
         </div>
         <h2 class="article-title">{{ object.title }}</h2>
-        <a class="btn btn-secondary mt-1 mb-1 material-icons" href="{% url 'post-share' object.id %}"
-           style="float:right">send</a>
         <p class="article-content">{{ object.content }}</p>
-      </div>
-    </article>
+    </div>
+</article>
+
+<form action="{% url 'added-comment' %}" method="post">
+    {% csrf_token %}
+    {% if user.is_authenticated %}
+    <input name="user_id" type="hidden" value="{{ user.id }}"/>
+    <input name="post_id" type="hidden" value="{{ object.id }}"/>
+    <input name="current_page" type="hidden" value="{{ request.get_full_path }}"/>
+
+    <div class="input-group mb-3">
+        <input aria-describedby="basic-addon2" aria-label="Type your comment" class="form-control" id="input_id"
+               name="text" placeholder="Type your comment" type="text">
+        <div class="input-group-append">
+            <button class="btn btn-outline-secondary" id="search_button_id" type="submit">Comment</button>
+        </div>
+    </div>
+    {% endif %}
+    </h2>
+</form>
+
+<article class="media content-section">
+
+    <div class="media-body">
+        <h6 class="article-title">Comments:</h6>
+        {% for comment in comments %}
+        <article class="media content-section">
+
+            <img class="rounded-circle article-img" src="{{ comment.user.profile.image.url }}">
+            <div class="media-body">
+                <div class="article-metadata">
+                    <a class="mr-2" href="{% url 'user-posts' object.author.username %}">{{ comment.user.username }}</a>
+                    <small class="text-muted"> On: {{ comment.date_of_comment|date:"F d, Y f" }}</small>
+                </div>
+                <p class="article-content">{{ comment.text }}</p>
+            </div>
+        </article>
+        {% endfor %}
+    </div>
+</article>
 {% endblock content %}

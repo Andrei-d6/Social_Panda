@@ -11,30 +11,33 @@
             <a class="mr-2" href="{% url 'user-posts' post.author.username %}">{{ post.author }}</a>
             <small class="text-muted">{{ post.date_posted|date:"F d, Y f" }}</small>
         </div>
-            <h2><a class="article-title" href="{% url 'post-detail' post.id %}">{{ post.title }}</a></h2>
-            <p class="article-content">{{ post.content }}</p>
+        <h2><a class="article-title" href="{% url 'post-detail' post.id %}">{{ post.title }}</a></h2>
+        <p class="article-content">{{ post.content }}</p>
 
-            <form action="/like/" method="post">
-                {% csrf_token %}
-                <a class="text-muted">Likes: {{ post.like_count }}</a>
-                {% if user.is_authenticated %}
-                <input name="post_id" type="hidden" value="{{ post.id }}"/>
-                <input name="current_page" type="hidden" value="{{  request.get_full_path }}"/>
+        {% if post.image %}
+        <img class="post-img" src="{{ post.image.url }}">
+        {% endif %}
+        <form action="/like/" method="post">
+            {% csrf_token %}
+            <a class="text-muted">Likes: {{ post.like_count }}</a>
+            {% if user.is_authenticated %}
+            <input name="post_id" type="hidden" value="{{ post.id }}"/>
+            <input name="current_page" type="hidden" value="{{  request.get_full_path }}"/>
 
-                {% if user.id != post.author.id %}
-                {% if post.liked == 0 %}
-                <button class="btn btn-outline-info mb-1 material-icons" style="float:right" type="submit">thumb_up
-                </button>
-                {% else %}
-                <button class="btn btn-outline-danger mb-1 material-icons" style="float:right" type="submit">
-                    thumb_down
-                </button>
-                {% endif %}
-                {% else %}
-                <button class="btn btn-secondary mb-1 material-icons disabled" style="float:right">thumb_up</button>
-                {% endif %}
-                {% endif %}
-            </form>
+            {% if user.id != post.author.id %}
+            {% if post.liked == 0 %}
+            <button class="btn btn-outline-info mb-1 material-icons" style="float:right" type="submit">thumb_up
+            </button>
+            {% else %}
+            <button class="btn btn-outline-danger mb-1 material-icons" style="float:right" type="submit">
+                thumb_down
+            </button>
+            {% endif %}
+            {% else %}
+            <button class="btn btn-secondary mb-1 material-icons disabled" style="float:right">thumb_up</button>
+            {% endif %}
+            {% endif %}
+        </form>
     </div>
 </article>
 {% endfor %}

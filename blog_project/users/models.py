@@ -6,10 +6,10 @@ from django.db import models
 
 class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
-    image = models.ImageField(default='default.jpg', upload_to='profile_pics')
+    image = models.ImageField(default="default.jpg", upload_to="profile_pics")
 
     def __str__(self):
-        return f'{self.user.username} Profile'
+        return f"{self.user.username} Profile"
 
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
@@ -17,8 +17,10 @@ class Profile(models.Model):
         # taking the image form the instance
         img = Image.open(self.image.path)
 
-        if self.image.name != 'default.jpg':
-            old_image_path = settings.MEDIA_ROOT + 'profile_pics' + self.user.profile.image.name
+        if self.image.name != "default.jpg":
+            old_image_path = (
+                    settings.MEDIA_ROOT + "profile_pics" + self.user.profile.image.name
+            )
             # if os.path.isfile(old_image_path) and self.form.is_valid():
             #     os.remove(old_image_path)
 
