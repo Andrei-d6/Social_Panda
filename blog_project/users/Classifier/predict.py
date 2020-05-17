@@ -4,6 +4,7 @@ import os
 from multiprocessing.connection import Listener
 
 from classifier import *
+from keras.engine.saving import load_model
 
 
 def main():

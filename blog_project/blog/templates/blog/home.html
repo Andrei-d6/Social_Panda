@@ -15,7 +15,7 @@
         <p class="article-content">{{ post.content }}</p>
 
         {% if post.image %}
-        <img class="post-img" src="{{ post.image.url }}">
+        <a href="{% url 'post-detail' post.id %}"><img class="post-img" src="{{ post.image.url }}"></a>
         {% endif %}
         <form action="/like/" method="post">
             {% csrf_token %}

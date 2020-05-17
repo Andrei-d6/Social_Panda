@@ -1,3 +1,4 @@
+
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.contrib.auth.models import User
@@ -33,15 +34,14 @@ class PostListView(ListView):
     def get_queryset(self):
         if self.request.user.is_authenticated:
             return (
-                Post.objects.all()
-                    .annotate(
-                    like_count=Count("likes"),
-                    liked=Count("likes", filter=Q(likes__user=self.request.user)),
-                ).annotate(comments_count=Count("comment"))
-                    .order_by("-date_posted")
+                Post.objects.all().annotate(
+                    like_count=Count("likes", distinct=True),
+                    comments_count=Count("comment", distinct=True),
+                    liked=Count("likes", filter=Q(likes__user=self.request.user), distinct=True)
+                ).order_by("-date_posted")
             )
         else:
-            return Post.objects.all().annotate(like_count=Count("likes"))
+            return Post.objects.all().annotate(like_count=Count("likes")).order_by("-date_posted")
 
 
 class UserPostListView(ListView):
@@ -224,9 +224,21 @@ class ProcessRequestRedirectView(RedirectView):
                 Friend.objects.create(
                     current_user=friend, current_user_friend=current_user
                 )
-            FriendRequest.objects.get(
-                sender_id=friend.id, receiver_id=current_user.id
-            ).delete()
+
+            if FriendRequest.objects.filter(
+                    sender_id=friend.id, receiver_id=current_user.id
+            ).exists():
+                FriendRequest.objects.get(
+                    sender_id=friend.id, receiver_id=current_user.id
+                ).delete()
+
+            if FriendRequest.objects.filter(
+                    receiver_id=friend.id, sender_id=current_user.id
+            ).exists():
+                FriendRequest.objects.get(
+                    receiver_id=friend.id, sender_id=current_user.id
+                ).delete()
+
             return "/friend-request/"
         else:
             return super().get_redirect_url(*args, **kwargs)
@@ -397,8 +409,7 @@ class SearchListView(LoginRequiredMixin, ListView):
     template_name = "blog/search.html"
     context_object_name = "posts"
     ordering = ["-date_posted"]
-
-    # paginate_by = 2
+    paginate_by = 2
 
     def get_queryset(self):
         searched_word = self.request.GET.get("search_for", "")
@@ -411,9 +422,9 @@ class SearchListView(LoginRequiredMixin, ListView):
             Q(author__username__icontains=searched_word) |
             Q(content__icontains=searched_word)
         ).annotate(
-            like_count=Count("likes"),
-            liked=Count("likes", filter=Q(likes__user=self.request.user)),
-        ).annotate(comments_count=Count("comment"))
+            like_count=Count("likes", distinct=True),
+            liked=Count("likes", filter=Q(likes__user=self.request.user), distinct=True),
+            comments_count=Count("comment", distinct=True)).order_by("-date_posted")
 
         if not posts:
             messages.warning(

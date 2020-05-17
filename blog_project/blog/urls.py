@@ -40,11 +40,7 @@ urlpatterns = [
     path("post-shared/", PostShareRedirectView.as_view(), name="post-shared"),
     path("deleted-friend/", FriendDeleteRedirectView.as_view(), name="deleted-friend"),
     path("shared-posts/", SharedPostsListView.as_view(), name="shared-posts"),
-    path(
-        "delete-shared-post/",
-        PostShareDeleteRedirectView.as_view(),
-        name="delete-shared-post",
-    ),
+    path("delete-shared-post/", PostShareDeleteRedirectView.as_view(), name="delete-shared-post"),
     path("added-comment/", AddCommentRedirectView.as_view(), name="added-comment"),
     path("search/", SearchListView.as_view(), name="search"),
 ]
