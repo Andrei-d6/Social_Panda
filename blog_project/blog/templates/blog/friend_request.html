@@ -1,0 +1,25 @@
+{% extends 'blog/base.html'%}
+{% block content %}
+    {% if user.is_authenticated  %}
+        {% if friend_requests %}
+            {% for request in friend_requests %}
+            <article class="media content-section">
+              <img class="rounded-circle article-img" src="{{ request.sender.profile.image.url }}">
+              <div class="media-body">
+                {% csrf_token %}
+                <h2><a class="article-title">{{ request.sender.username }}</a>
+                    <button onclick="window.location='/process-request?friend={{ request.sender.id }}&accepted=false'"
+                            style="float:right" class="btn btn-outline-danger ml-2" type="submit">Reject</button>
+                    <button onclick="window.location='/process-request?friend={{ request.sender.id }}&accepted=true'"
+                            style="float:right" class="btn btn-outline-info" type="submit">Accept</button>
+                </h2>
+                <div class="article-metadata">
+                </div>
+              </div>
+            </article>
+            {% endfor %}
+        {% else %}
+            <h2>No new friends requests.</h2>
+        {% endif %}
+    {% endif %}
+{% endblock content %}

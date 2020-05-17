@@ -1,0 +1,48 @@
+{% extends 'blog/base.html'%}
+{% block extrahead %}
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+{% endblock extrahead %}
+{% block content %}
+    {% if friends %}
+        {% for friend in friends %}
+            {% if user.is_authenticated  %}
+                <article class="media content-section">
+                  <img class="rounded-circle article-img" src="{{ friend.current_user_friend.profile.image.url }}">
+                  <div class="media-body">
+                    <h1>
+                        <a class="article-title vertical-align" href="{% url 'user-posts' friend.current_user_friend.username %}">
+                        {{ friend.current_user_friend.username }}</a>
+
+                    <button  style="float:right" class="btn btn-outline-danger mt-3 pt-2 material-icons vertical-align"
+                             type="submit" onclick="window.location='/deleted-friend?friend_to_delete={{ friend.current_user_friend.id }}&current_page={{ request.get_full_path }}'">delete</button>
+                    </h1>
+                  </div>
+                </article>
+            {% endif %}
+        {% endfor %}
+    {% else %}
+        <h3>It seems you don't have any friends yet.</h3>
+        <p>Try adding some<a class="ml-1" href="{% url 'add-friend' %}">Here</a></p>
+    {% endif %}
+
+<!--    pagination logic-->
+{% if is_paginated %}
+    {% if page_obj.has_previous %}
+    <a class="btn btn-outline-info mb-4" href="?page=1">First</a>
+    <a class="btn btn-outline-info mb-4" href="?page={{ page_obj.previous_page_number }}">Previous</a>
+    {% endif %}
+
+    {% for num in page_obj.paginator.page_range %}
+        {% if page_obj.number == num %}
+            <a class="btn btn-info mb-4" href="?page={{ num }}">{{ num }}</a>
+        {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                         <a class="btn btn-outline-info mb-4" href="?page={{ num }}">{{ num }}</a>
+        {% endif%}
+    {% endfor %}
+
+    {% if page_obj.has_next %}
+        <a class="btn btn-outline-info mb-4" href="?page={{ page_obj.next_page_number}}">Next</a>
+        <a class="btn btn-outline-info mb-4" href="?page={{ page_obj.paginator.num_pages }}">Last</a>
+    {% endif %}
+{% endif %}
+{% endblock content %}

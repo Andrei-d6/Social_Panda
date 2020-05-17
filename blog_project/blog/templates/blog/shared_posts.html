@@ -1,0 +1,80 @@
+{% extends 'blog/base.html'%}
+{% block extrahead %}
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+{% endblock extrahead %}
+{% block content %}
+{% if user.is_authenticated  %}
+    {% if posts %}
+        {% for post in posts %}
+        <article class="media content-section">
+            <img class="rounded-circle article-img" src="{{ post.0.author.profile.image.url }}">
+            <div class="media-body">
+                <div class="article-metadata">
+                    <a class="mr-2" href="{% url 'user-posts' post.0.author.username %}">{{ post.0.author }}</a>
+                    <small class="text-muted">{{ post.0.date_posted|date:"F d, Y f" }}</small>
+                </div>
+                    <h2>
+                      <form action="/delete-shared-post/" method="post">
+                          {% csrf_token %}
+                          <a class="article-title" href="{% url 'post-detail' post.0.id %}">{{ post.0.title }}</a>
+                          <input type="hidden" value="{{ post.0.id }}" name="post_id"/>
+                          <input type="hidden" value="{{  request.get_full_path }}" name="current_page"/>
+                          <input type="hidden" value="{{  post.1 }}" name="sender_name"/>
+                          <button class="btn btn-outline-info mb-1 material-icons" style="float:right" type="submit">delete</button>
+                      </form>
+                    </h2>
+
+                    <p class="article-content">{{ post.0.content }}</p>
+
+                    <form action="/like/" method="post">
+                        {% csrf_token %}
+                        <a class="text-muted">Likes: {{ post.0.like_count }}</a>
+                        {% if user.is_authenticated  %}
+                            <input type="hidden" value="{{ post.0.id }}" name="post_id"/>
+                            <input type="hidden" value="{{  request.get_full_path }}" name="current_page"/>
+
+                            {% if user.id != post.0.author.id %}
+                            {% if post.0.liked == 0 %}
+                             <button class="btn btn-outline-info mb-1 material-icons" style="float:right" type="submit">thumb_up
+                            </button>
+                            {% else %}
+                            <button class="btn btn-outline-danger mb-1 material-icons" style="float:right" type="submit">
+                                thumb_down
+                            </button>
+                            {% endif %}
+                            {% else %}
+                            <button class="btn btn-secondary mb-1 material-icons disabled" style="float:right">thumb_up</button>
+                            {% endif %}
+                        {% endif %}
+                    </form>
+                    <p style="float:left">Shared by: {{ post.1 }}</p>
+                  </div>
+        </article>
+        {% endfor %}
+    <!--    pagination logic-->
+{% if is_paginated %}
+    {% if page_obj.has_previous %}
+        <a class="btn btn-outline-info mb-4" href="?page=1">First</a>
+        <a class="btn btn-outline-info mb-4" href="?page={{ page_obj.previous_page_number }}">Previous</a>
+    {% endif %}
+
+    {% for num in page_obj.paginator.page_range %}
+        {% if page_obj.number == num %}
+            <a class="btn btn-info mb-4" href="?page={{ num }}">{{ num }}</a>
+        {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+             <a class="btn btn-outline-info mb-4" href="?page={{ num }}">{{ num }}</a>
+        {% endif%}
+    {% endfor %}
+
+        {% if page_obj.has_next %}
+            <a class="btn btn-outline-info mb-4" href="?page={{ page_obj.next_page_number}}">Next</a>
+            <a class="btn btn-outline-info mb-4" href="?page={{ page_obj.paginator.num_pages }}">Last</a>
+        {% endif %}
+    {% endif %}
+
+    {% else %}
+        <h3>No new recommendations.</h3>
+        <p>Maybe share some yourself?<a class="ml-2" href="{% url 'blog-home' %}">Try now</a></p>
+    {% endif %}
+{% endif %}
+{% endblock content %}
