@@ -45,9 +45,10 @@ def profile(request):
             return redirect("profile")
         else:
             valid = False
-            messages.warning(
-                request, f"The image does not contain a raccoon! Please be a raccoon"
-            )
+            if u_form.is_valid() and p_form.is_valid():
+                messages.warning(
+                    request, f"The image does not contain a raccoon! Please be a raccoon"
+                )
     else:
         u_form = UserUpdateForm(instance=request.user)
         p_form = ProfileUpdateForm(instance=request.user.profile)
