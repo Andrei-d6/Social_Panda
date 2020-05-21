@@ -34,11 +34,15 @@ class ProfileUpdateForm(forms.ModelForm):
         path = default_storage.save(
             settings.MEDIA_ROOT + "\\raccoon.jpg", ContentFile(image.read())
         )
+        print('MACARENAA')
+        print(path)
         raccoon_likeliness = classify_file(path)
-        os.remove(path)
 
+        print(raccoon_likeliness)
         if raccoon_likeliness < 0.9:
+            os.remove(path)
             return False
+        os.remove(path)
         return True
 
     class Meta:
