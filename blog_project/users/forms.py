@@ -34,8 +34,6 @@ class ProfileUpdateForm(forms.ModelForm):
         path = default_storage.save(
             settings.MEDIA_ROOT + "\\raccoon.jpg", ContentFile(image.read())
         )
-        print('MACARENAA')
-        print(path)
         raccoon_likeliness = classify_file(path)
 
         print(raccoon_likeliness)

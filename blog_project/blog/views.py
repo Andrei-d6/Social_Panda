@@ -435,23 +435,3 @@ class SearchListView(LoginRequiredMixin, ListView):
         # self.kwargs.update({"search_for": searched_word})
         return posts
 
-    # def get_context_data(self, *, object_list=None, **kwargs):
-    #     searched_word = self.request.GET.get("search_for", "")
-    #
-    #     if searched_word == '':
-    #         return super().get_context_data(object_list=None, **kwargs)
-    #
-    #     posts = Post.objects.filter(
-    #          Q(title__icontains=searched_word) |
-    #          Q(author__username__icontains=searched_word) |
-    #          Q(content__icontains=searched_word)
-    #     ).order_by('-date_posted')
-    #
-    #     if not posts:
-    #         messages.warning(
-    #             self.request, f"Nothing to be found for your search!"
-    #         )
-    #     kwargs.update({"posts": posts,
-    #
-    #                    })
-    #     return super().get_context_data(object_list=None, **kwargs)
